@@ -1,0 +1,374 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Attendance Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            --paper: #faedcd;
+            --card: #fffdf7;
+            --ink: #432818;
+            --rule: #d4a373;
+            --stamp: #606c38;
+            --bad: #bc4749;
+            --muted: #8a7968
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--paper);
+            background-image: repeating-linear-gradient(to bottom, transparent, transparent 31px, var(--rule) 32px);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink)
+        }
+
+        .card {
+            background: var(--card);
+            padding: 40px 36px;
+            border-radius: 4px;
+            box-shadow: 0 4px 0 var(--rule), 0 6px 20px rgba(67, 40, 24, .15);
+            width: 100%;
+            max-width: 380px;
+            position: relative
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 800;
+            font-size: 22px;
+            margin: 0 0 2px;
+            letter-spacing: .3px
+        }
+
+        .sub {
+            color: var(--muted);
+            margin: 0 0 22px;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin: 14px 0 4px
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            padding: 11px 12px;
+            font-size: 15px;
+            border-radius: 3px;
+            border: 1px solid var(--rule);
+            background: #fff;
+            color: var(--ink);
+            font-family: inherit
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--stamp)
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 20px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 3px;
+            background: var(--ink);
+            color: var(--paper);
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'IBM Plex Mono', monospace
+        }
+
+        button:hover {
+            background: var(--stamp)
+        }
+
+        #msg {
+            margin-top: 16px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 14px
+        }
+
+        .who {
+            color: var(--muted);
+            margin-bottom: 18px;
+            text-align: center;
+            font-size: 13px
+        }
+
+        .otp-stub {
+            position: relative;
+            border: 2px dashed var(--rule);
+            border-radius: 6px;
+            padding: 22px 18px;
+            margin: 10px 0;
+            text-align: center;
+            background:
+                radial-gradient(circle 7px at 0 50%, var(--paper) 7px, transparent 7.5px),
+                radial-gradient(circle 7px at 100% 50%, var(--paper) 7px, transparent 7.5px);
+        }
+
+        #scanStatus {
+            font-size: 14px;
+            color: var(--muted)
+        }
+
+        .stamp {
+            display: inline-block;
+            border: 3px solid var(--stamp);
+            color: var(--stamp);
+            font-family: 'Fraunces', serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 3px 12px;
+            border-radius: 6px;
+            transform: rotate(-7deg);
+            font-size: 13px;
+            letter-spacing: 1px
+        }
+
+        @keyframes stampIn {
+            0% {
+                opacity: 0;
+                transform: rotate(-7deg) scale(2.4)
+            }
+
+            60% {
+                opacity: 1;
+                transform: rotate(-7deg) scale(.9)
+            }
+
+            100% {
+                opacity: 1;
+                transform: rotate(-7deg) scale(1)
+            }
+        }
+
+        .stamp.animate {
+            animation: stampIn .4s ease forwards
+        }
+
+        .scan-btn {
+            width: 100%;
+            padding: 13px;
+            margin-top: 14px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid var(--ink);
+            border-radius: 3px;
+            background: transparent;
+            color: var(--ink);
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'IBM Plex Mono', monospace
+        }
+
+        .scan-btn:hover {
+            background: var(--ink);
+            color: var(--paper)
+        }
+
+        #qrReader {
+            width: 100%;
+            margin-top: 14px;
+            border-radius: 6px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #qrReader video {
+            border-radius: 6px;
+        }
+
+        #camError {
+            color: var(--bad);
+            font-size: 12.5px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div id="regForm">
+            <h1>Student Register</h1>
+            <p class="sub">One-time profile setup</p>
+            <label>Full name</label><input id="name">
+            <label>Enrolment ID</label><input id="enrollment">
+            <label>Section</label><input id="section">
+            <button onclick="register()">Continue</button>
+        </div>
+
+        <div id="otpForm" style="display:none">
+            <h1>Mark Attendance</h1>
+            <p class="who" id="who"></p>
+            <div class="otp-stub"><span id="scanStatus">Scan the QR code shown by your teacher.</span></div>
+            <button class="scan-btn" id="scanToggleBtn" onclick="toggleScan()">Open Camera to Scan</button>
+            <div id="qrReader"></div>
+            <div id="camError"></div>
+            <p style="text-align:center;margin-top:14px"><a href="#" onclick="switchProfile();return false" style="color:var(--muted);font-size:12px">Not you? Switch profile</a></p>
+        </div>
+        <div id="msg"></div>
+    </div>
+    <script>
+        let token = new URLSearchParams(location.search).get('token');
+        const saved = JSON.parse(localStorage.getItem('profile') || 'null');
+        let html5QrCode = null;
+        let scanning = false;
+        if (saved) showOtp(saved);
+
+        async function register() {
+            const name = document.getElementById('name').value.trim();
+            const enrollment = document.getElementById('enrollment').value.trim();
+            const section = document.getElementById('section').value.trim();
+            if (!name || !enrollment || !section) return alert('fill all fields');
+            const r = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, enrollment, section }) });
+            if (!r.ok) return alert('registration failed');
+            const profile = { name, enrollment, section };
+            localStorage.setItem('profile', JSON.stringify(profile));
+            showOtp(profile);
+        }
+        function showOtp(profile) {
+            document.getElementById('regForm').style.display = 'none';
+            document.getElementById('otpForm').style.display = 'block';
+            document.getElementById('who').textContent = `${profile.name} · ${profile.enrollment}`;
+            if (token) {
+                document.getElementById('scanStatus').textContent = 'QR code detected — marking attendance…';
+                markAttendance();
+            } else {
+                document.getElementById('scanStatus').textContent = 'Scan the QR code shown by your teacher.';
+            }
+        }
+        async function markAttendance(overrideToken) {
+            const useToken = overrideToken || token;
+            if (!useToken) return;
+            const profile = JSON.parse(localStorage.getItem('profile'));
+            const r = await fetch('/api/mark', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enrollment: profile.enrollment, token: useToken }) });
+            const data = await r.json();
+            const msg = document.getElementById('msg');
+            if (r.ok) {
+                document.getElementById('scanStatus').textContent = '';
+                document.getElementById('scanToggleBtn').style.display = 'none';
+                msg.innerHTML = `<span class="stamp animate">${data.already ? 'Already Marked' : 'Present'}</span>`;
+            } else {
+                msg.style.color = 'var(--bad)';
+                msg.textContent = data.error;
+                document.getElementById('scanStatus').textContent = 'Ask your teacher to show a fresh QR code, then scan again.';
+            }
+        }
+
+        function switchProfile() {
+            localStorage.removeItem('profile');
+            location.reload();
+        }
+
+        function extractToken(decodedText) {
+            // Accept either a raw token or a full URL like https://host/student.html?token=XYZ
+            try {
+                const url = new URL(decodedText);
+                const t = url.searchParams.get('token');
+                if (t) return t;
+            } catch (e) {
+                // not a URL, fall through and treat decodedText as the raw token
+            }
+            return decodedText;
+        }
+
+        async function toggleScan() {
+            if (scanning) {
+                await stopScan();
+                return;
+            }
+            const camError = document.getElementById('camError');
+            camError.style.display = 'none';
+            camError.textContent = '';
+
+            if (!window.isSecureContext) {
+                camError.textContent = 'Camera access needs HTTPS (or localhost). Ask your admin to serve this page over https.';
+                camError.style.display = 'block';
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                camError.textContent = 'Camera scanning is not supported in this browser.';
+                camError.style.display = 'block';
+                return;
+            }
+
+            const readerEl = document.getElementById('qrReader');
+            readerEl.style.display = 'block';
+            document.getElementById('scanToggleBtn').textContent = 'Stop Camera';
+            document.getElementById('scanStatus').textContent = 'Point your camera at the QR code…';
+
+            html5QrCode = new Html5Qrcode('qrReader');
+            try {
+                await html5QrCode.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 240, height: 240 } },
+                    async (decodedText) => {
+                        const scannedToken = extractToken(decodedText);
+                        token = scannedToken;
+                        await stopScan();
+                        document.getElementById('scanStatus').textContent = 'QR code detected — marking attendance…';
+                        markAttendance(scannedToken);
+                    },
+                    () => { /* per-frame decode failures are normal, ignore */ }
+                );
+                scanning = true;
+            } catch (err) {
+                readerEl.style.display = 'none';
+                document.getElementById('scanToggleBtn').textContent = 'Open Camera to Scan';
+                if (err && err.name === 'NotAllowedError') {
+                    camError.textContent = 'Camera permission denied. Enable it in your browser/site settings and try again.';
+                } else if (err && err.name === 'NotFoundError') {
+                    camError.textContent = 'No camera found on this device.';
+                } else {
+                    camError.textContent = 'Could not start the camera. Try again or scan with your phone\'s built-in camera app instead.';
+                }
+                camError.style.display = 'block';
+            }
+        }
+
+        async function stopScan() {
+            if (html5QrCode && scanning) {
+                try {
+                    await html5QrCode.stop();
+                    html5QrCode.clear();
+                } catch (e) { /* already stopped */ }
+            }
+            scanning = false;
+            document.getElementById('qrReader').style.display = 'none';
+            document.getElementById('scanToggleBtn').textContent = 'Open Camera to Scan';
+        }
+    </script>
+</body>
+
+</html>
