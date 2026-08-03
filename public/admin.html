@@ -1,0 +1,516 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Teacher Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --paper: #faedcd;
+            --card: #fffdf7;
+            --ink: #432818;
+            --rule: #d4a373;
+            --stamp: #606c38;
+            --bad: #bc4749;
+            --muted: #8a7968
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--paper);
+            background-image: repeating-linear-gradient(to bottom, transparent, transparent 31px, var(--rule) 32px);
+            margin: 0;
+            color: var(--ink)
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh
+        }
+
+        .sidebar {
+            width: 210px;
+            background: var(--ink);
+            padding: 28px 0;
+            display: flex;
+            flex-direction: column;
+            position: relative
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-image: radial-gradient(circle 4px, var(--paper) 4px, transparent 4.5px);
+            background-size: 1px 40px;
+            background-repeat: repeat-y
+        }
+
+        .brand {
+            font-family: 'Fraunces', serif;
+            font-weight: 800;
+            color: var(--paper);
+            font-size: 19px;
+            margin: 0 28px 30px 34px
+        }
+
+        .nav-item {
+            padding: 11px 16px 11px 34px;
+            cursor: pointer;
+            color: #c9b599;
+            font-weight: 500;
+            font-size: 13.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px
+        }
+
+        .nav-item.active {
+            background: var(--stamp);
+            color: #fff
+        }
+
+        .nav-item:hover {
+            color: #fff
+        }
+
+        .logout {
+            margin-top: auto;
+            color: #e0a0a0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 11px 16px 11px 34px;
+            text-transform: uppercase;
+            letter-spacing: .6px
+        }
+
+        .main {
+            flex: 1;
+            padding: 36px 44px
+        }
+
+        .center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%
+        }
+
+        .card {
+            background: var(--card);
+            padding: 32px;
+            border-radius: 4px;
+            box-shadow: 0 4px 0 var(--rule), 0 6px 20px rgba(67, 40, 24, .12)
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-weight: 800;
+            margin: 0 0 2px;
+            font-size: 24px
+        }
+
+        .sub {
+            color: var(--muted);
+            margin: 0 0 22px;
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin: 14px 0 4px
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            padding: 11px 12px;
+            font-size: 15px;
+            border-radius: 3px;
+            border: 1px solid var(--rule);
+            background: #fff;
+            color: var(--ink);
+            font-family: inherit
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--stamp)
+        }
+
+        button {
+            padding: 11px 18px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            border: none;
+            border-radius: 3px;
+            background: var(--ink);
+            color: var(--paper);
+            font-weight: 600;
+            cursor: pointer;
+            margin: 16px 8px 4px 0;
+            font-family: 'IBM Plex Mono', monospace
+        }
+
+        button:hover {
+            background: var(--stamp)
+        }
+
+        button.secondary {
+            background: var(--paper);
+            color: var(--ink);
+            border: 1px solid var(--rule)
+        }
+
+        button.danger {
+            background: var(--bad);
+            color: #fff
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 22px
+        }
+
+        .stat {
+            flex: 1;
+            background: var(--card);
+            border-left: 4px solid var(--stamp);
+            border-radius: 2px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 8px rgba(67, 40, 24, .08)
+        }
+
+        .stat .val {
+            font-family: 'Fraunces', serif;
+            font-size: 26px;
+            font-weight: 800
+        }
+
+        .stat .label {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .8px
+        }
+
+        .otp-stub {
+            position: relative;
+            border: 2px dashed var(--rule);
+            border-radius: 6px;
+            padding: 22px;
+            margin: 16px 0;
+            text-align: center;
+            background:
+                radial-gradient(circle 8px at 0 50%, var(--paper) 8px, transparent 8.5px),
+                radial-gradient(circle 8px at 100% 50%, var(--paper) 8px, transparent 8.5px);
+        }
+
+        .qr-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 176px
+        }
+
+        .qr-box img,
+        .qr-box canvas {
+            image-rendering: pixelated;
+            border-radius: 4px;
+            background: #fff;
+            padding: 8px
+        }
+
+        .qr-hint {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 10px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--rule);
+            font-size: 13.5px
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .6px
+        }
+
+        .stamp {
+            display: inline-block;
+            border: 2px solid var(--stamp);
+            color: var(--stamp);
+            font-family: 'Fraunces', serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 1px 9px;
+            border-radius: 5px;
+            transform: rotate(-6deg);
+            font-size: 11px
+        }
+
+        @keyframes stampIn {
+            0% {
+                opacity: 0;
+                transform: rotate(-6deg) scale(2.2)
+            }
+
+            60% {
+                opacity: 1;
+                transform: rotate(-6deg) scale(.9)
+            }
+
+            100% {
+                opacity: 1;
+                transform: rotate(-6deg) scale(1)
+            }
+        }
+
+        .stamp.animate {
+            animation: stampIn .35s ease forwards
+        }
+
+        .hist-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: var(--card);
+            border: 1px solid var(--rule);
+            border-radius: 4px;
+            margin-bottom: 8px
+        }
+
+        .badge {
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            background: var(--stamp);
+            color: #fff
+        }
+
+        .badge.closed {
+            background: #e5d7c3;
+            color: var(--muted)
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loginBox" class="center">
+        <div class="card" style="width:340px">
+            <h1>Teacher Login</h1>
+            <p class="sub">Sign in to your register</p>
+            <label>Username</label><input id="user">
+            <label>Password</label><input id="pass" type="password">
+            <button onclick="login()" style="width:100%;margin-top:18px">Login</button>
+            <p id="loginMsg" style="color:var(--bad);font-size:13px"></p>
+        </div>
+    </div>
+
+    <div id="dash" style="display:none" class="layout">
+        <div class="sidebar">
+            <div class="brand">📖 Register</div>
+            <div class="nav-item active" id="tabLive" onclick="showTab('live')">Live Session</div>
+            <div class="nav-item" id="tabHist" onclick="showTab('history')">History</div>
+            <div class="logout" onclick="logout()">Logout</div>
+        </div>
+        <div class="main">
+            <h1 id="hello"></h1>
+            <p class="sub" id="today"></p>
+
+            <div id="liveTab">
+                <div class="stats">
+                    <div class="stat">
+                        <div class="val" id="statPresent">0</div>
+                        <div class="label">Present today</div>
+                    </div>
+                    <div class="stat">
+                        <div class="val" id="statSessions">0</div>
+                        <div class="label">Total sessions</div>
+                    </div>
+                    <div class="stat">
+                        <div class="val" id="statSubject">–</div>
+                        <div class="label">Current subject</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <label>Subject</label>
+                    <input id="subject" placeholder="e.g. Data Structures">
+                    <button onclick="generateSession()">Generate QR</button>
+                    <button class="danger" id="closeBtn" onclick="closeSession()" style="display:none">Close
+                        Session</button>
+                    <div class="otp-stub">
+                        <div class="qr-box" id="qrBox"></div>
+                        <div class="qr-hint" id="qrHint" style="display:none">Students scan this with their phone camera to mark attendance.</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Enrolment</th>
+                                <th>Section</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="historyTab" style="display:none" class="card">
+                <div id="histList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let teacherId = null, teacherName = null;
+        const savedAuth = JSON.parse(localStorage.getItem('teacherAuth') || 'null');
+        if (savedAuth) { teacherId = savedAuth.teacherId; teacherName = savedAuth.teacherName; enterDash(); }
+
+        async function login() {
+            const username = document.getElementById('user').value;
+            const password = document.getElementById('pass').value;
+            const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+            const data = await r.json();
+            if (r.ok) {
+                teacherId = data.teacherId; teacherName = data.teacherName;
+                localStorage.setItem('teacherAuth', JSON.stringify({ teacherId, teacherName }));
+                enterDash();
+            } else document.getElementById('loginMsg').textContent = data.error || 'Invalid credentials';
+        }
+        function logout() { localStorage.removeItem('teacherAuth'); location.reload(); }
+        function enterDash() {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('dash').style.display = 'flex';
+            document.getElementById('hello').textContent = teacherName;
+            document.getElementById('today').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            connectStream();
+            refreshStats();
+        }
+        function showTab(tab) {
+            document.getElementById('liveTab').style.display = tab === 'live' ? 'block' : 'none';
+            document.getElementById('historyTab').style.display = tab === 'history' ? 'block' : 'none';
+            document.getElementById('tabLive').classList.toggle('active', tab === 'live');
+            document.getElementById('tabHist').classList.toggle('active', tab === 'history');
+            if (tab === 'history') loadHistory();
+        }
+        function renderQr(qrToken) {
+            const box = document.getElementById('qrBox');
+            box.innerHTML = '';
+            document.getElementById('qrHint').style.display = 'none';
+            if (!qrToken) return;
+            const url = `${location.origin}/student.html?token=${qrToken}`;
+            new QRCode(box, { text: url, width: 180, height: 180, colorDark: '#432818', colorLight: '#ffffff' });
+            document.getElementById('qrHint').style.display = 'block';
+        }
+        async function generateSession() {
+            const subject = document.getElementById('subject').value.trim();
+            const r = await fetch('/api/start-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teacherId, subject }) });
+            const data = await r.json();
+            renderQr(data.qrToken);
+            document.getElementById('rows').innerHTML = '';
+            document.getElementById('closeBtn').style.display = 'inline-block';
+            document.getElementById('statSubject').textContent = subject || '–';
+            refreshStats();
+        }
+        async function closeSession() {
+            await fetch('/api/close-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teacherId }) });
+            document.getElementById('closeBtn').style.display = 'none';
+            renderQr(null);
+        }
+        function connectStream() {
+            const es = new EventSource(`/api/stream?teacherId=${teacherId}`);
+            es.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'new-session') {
+                    document.getElementById('rows').innerHTML = '';
+                    renderQr(data.session.qrToken);
+                    document.getElementById('closeBtn').style.display = 'inline-block';
+                }
+                if (data.type === 'closed') {
+                    renderQr(null);
+                    document.getElementById('closeBtn').style.display = 'none';
+                }
+                if (data.type === 'mark') { addRow(data.student, true); bumpPresent(); }
+                if (data.type === 'init' && data.session) {
+                    renderQr(data.session.active ? data.session.qrToken : null);
+                    document.getElementById('closeBtn').style.display = data.session.active ? 'inline-block' : 'none';
+                    document.getElementById('statSubject').textContent = data.session.subject || '–';
+                    Object.values(data.session.present).forEach(s => addRow(s, false));
+                    document.getElementById('statPresent').textContent = Object.keys(data.session.present).length;
+                }
+            };
+        }
+        function addRow(s, animate) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${s.name}</td><td>${s.enrollment}</td><td>${s.section}</td><td>${new Date(s.time).toLocaleTimeString()}</td><td><span class="stamp${animate ? ' animate' : ''}">Present</span></td>`;
+            document.getElementById('rows').appendChild(tr);
+        }
+        function bumpPresent() {
+            const el = document.getElementById('statPresent');
+            el.textContent = Number(el.textContent) + 1;
+        }
+        async function refreshStats() {
+            const r = await fetch(`/api/history?teacherId=${teacherId}`);
+            const list = await r.json();
+            document.getElementById('statSessions').textContent = list.length;
+        }
+        async function loadHistory() {
+            const r = await fetch(`/api/history?teacherId=${teacherId}`);
+            const list = await r.json();
+            const el = document.getElementById('histList');
+            el.innerHTML = list.length ? '' : '<p style="color:var(--muted)">No sessions yet.</p>';
+            list.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'hist-row';
+                div.innerHTML = `<div><strong>${s.subject || 'No subject'}</strong><br><span style="color:var(--muted);font-size:12px">${new Date(s.createdAt).toLocaleString()} · ${s.count} present</span></div>
+      <div><span class="badge ${s.active ? '' : 'closed'}">${s.active ? 'active' : 'closed'}</span>
+      <button class="secondary" onclick="location.href='/api/export?id=${s.id}'">Export</button></div>`;
+                el.appendChild(div);
+            });
+        }
+    </script>
+</body>
+
+</html>
