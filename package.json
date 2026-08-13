@@ -1,12 +1,9 @@
 {
   "scripts": {
-    "build": "tsc",
-    "start": "npm run build && node server.js",
-    "dev": "npm start",
-    "dev:watch": "tsc --watch"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "devDependencies": {
-    "@types/node": "^26.1.2",
-    "typescript": "^7.0.2"
+  "dependencies": {
+    "pg": "^8.13.1"
   }
 }
