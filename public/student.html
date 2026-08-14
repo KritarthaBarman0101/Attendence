@@ -1,0 +1,1376 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Attendance Register</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
+        onerror="this.dataset.failed='1';var s=document.createElement('script');s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';document.head.appendChild(s);"></script>
+    <style>
+        :root {
+            --bg-0: #EEF1F6;
+            --ink: #0B0B0F;
+            --ink-2: #57596B;
+            --ink-3: #8A8C9B;
+            --blue: #0A6CFF;
+            --blue-press: #0857D1;
+            --red: #FF3B30;
+            --bad: #E5484D;
+            --green: #30C36B;
+            --hair: rgba(60, 60, 67, .16);
+            --glass: rgba(255, 255, 255, .72);
+            --glass-strong: rgba(255, 255, 255, .9);
+            --rail: rgba(20, 20, 30, 0.78);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+            color: var(--ink);
+            background: var(--bg-0);
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(65px);
+            opacity: .5;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .blob.a {
+            width: 380px;
+            height: 380px;
+            background: #B9CCFF;
+            top: -140px;
+            left: -100px;
+        }
+
+        .blob.b {
+            width: 340px;
+            height: 340px;
+            background: #CDE7FF;
+            bottom: -150px;
+            right: -80px;
+        }
+
+        .blob.c {
+            width: 280px;
+            height: 280px;
+            background: #E3D8FF;
+            top: 30%;
+            right: 30%;
+        }
+
+        /* ── Auth screen (register) ── */
+        .center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            padding: 32px 18px;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 380px;
+            background: var(--glass);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border-radius: 22px;
+            border: .5px solid rgba(255, 255, 255, .6);
+            box-shadow: 0 1px 2px rgba(20, 20, 40, .04), 0 20px 45px -18px rgba(20, 20, 40, .28);
+            padding: 30px 24px 26px;
+            animation: materialize 460ms cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes materialize {
+            from {
+                opacity: 0;
+                transform: scale(.94) translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .card,
+            .stat,
+            .panel {
+                animation: none !important;
+            }
+        }
+
+        .icon-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(160deg, #3E8BFF, #0A6CFF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 6px 14px -6px rgba(10, 108, 255, .55);
+        }
+
+        .icon-badge svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            margin: 0 0 4px;
+        }
+
+        .sub {
+            text-align: center;
+            font-size: 14px;
+            color: var(--ink-2);
+            margin: 0 0 24px;
+        }
+
+        .group {
+            background: rgba(255, 255, 255, .55);
+            border-radius: 14px;
+            overflow: hidden;
+            border: .5px solid rgba(255, 255, 255, .7);
+        }
+
+        .row {
+            position: relative;
+            padding: 9px 14px;
+            border-bottom: .5px solid var(--hair);
+            transition: background 120ms ease-out;
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .row.focused {
+            background: rgba(10, 108, 255, .06);
+        }
+
+        .row.shake {
+            animation: shake 380ms cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translateX(-1px);
+            }
+
+            20%,
+            80% {
+                transform: translateX(2px);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translateX(-4px);
+            }
+
+            40%,
+            60% {
+                transform: translateX(4px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .row.shake {
+                animation: none;
+            }
+        }
+
+        .row label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--ink-3);
+            margin-bottom: 1px;
+            transition: color 120ms ease-out;
+        }
+
+        .row.focused label {
+            color: var(--blue);
+        }
+
+        .row.invalid label {
+            color: var(--red);
+        }
+
+        .card input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--ink);
+            padding: 2px 24px 2px 0;
+        }
+
+        .card input::placeholder {
+            color: var(--ink-3);
+        }
+
+        .status-icon {
+            position: absolute;
+            right: 14px;
+            top: 28px;
+            width: 18px;
+            height: 18px;
+            opacity: 0;
+            transition: opacity 150ms ease-out, transform 260ms cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        .row.valid .status-icon.ok {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .row.invalid .status-icon.err {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .status-icon.ok {
+            transform: scale(.6);
+        }
+
+        .status-icon.err {
+            transform: scale(.6);
+        }
+
+        .field-error {
+            font-size: 12px;
+            color: var(--red);
+            margin: 8px 2px 0;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 180ms ease-out, opacity 150ms ease-out, margin 180ms ease-out;
+        }
+
+        .field-error.show {
+            max-height: 32px;
+            opacity: 1;
+        }
+
+        .group+.field-error {
+            margin: 8px 2px 0;
+        }
+
+        .card button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: var(--blue);
+            color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform 100ms ease-out, background 100ms ease-out;
+        }
+
+        .card button.pressed {
+            transform: scale(.97);
+            background: var(--blue-press);
+        }
+
+        .card button:focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 3px;
+        }
+
+        /* ── Scan panel (inside dashboard) ── */
+        .scan-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: rgba(10, 108, 255, .1);
+            color: var(--blue);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform 100ms ease-out, background 100ms ease-out, color 100ms ease-out;
+        }
+
+        .scan-btn.pressed {
+            transform: scale(.97);
+            background: rgba(10, 108, 255, .18);
+        }
+
+        .scan-btn.stopping {
+            background: rgba(255, 59, 48, .1);
+            color: var(--red);
+        }
+
+        .scan-status {
+            text-align: center;
+            font-size: 13px;
+            color: var(--ink-2);
+            background: rgba(255, 255, 255, .55);
+            border: .5px solid rgba(255, 255, 255, .7);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        #qrReader {
+            width: 100%;
+            margin-top: 14px;
+            border-radius: 14px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #qrReader video {
+            border-radius: 14px;
+        }
+
+        #camError {
+            color: var(--red);
+            font-size: 12.5px;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
+
+        #msg {
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .result-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 0 2px;
+        }
+
+        .result-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(.4);
+            opacity: 0;
+            animation: pop 420ms cubic-bezier(.34, 1.56, .64, 1) 40ms forwards;
+        }
+
+        .result-icon.present {
+            background: var(--green);
+        }
+
+        .result-icon.already {
+            background: var(--ink-3);
+        }
+
+        @keyframes pop {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .result-icon {
+                animation: none;
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .result-label {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+        }
+
+        /* ── Ribbon nav (matches teacher dashboard) ── */
+        .ribbon {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 12px 28px;
+            background: var(--rail);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            margin-right: 8px;
+        }
+
+        .brand .mark {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(160deg, #3E8BFF, #0A6CFF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px -4px rgba(10, 108, 255, .6);
+            flex: none;
+        }
+
+        .brand .mark svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .tabs {
+            position: relative;
+            display: flex;
+            gap: 2px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 11px;
+            padding: 3px;
+        }
+
+        .tab-pill {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            left: 3px;
+            width: 150px;
+            background: rgba(255, 255, 255, .14);
+            border-radius: 8px;
+            transition: transform 320ms cubic-bezier(.22, 1, .36, 1);
+            z-index: 0;
+        }
+
+        .nav-item {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            width: 150px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, .62);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 140ms ease-out, transform 100ms ease-out;
+        }
+
+        .nav-item svg,
+        .logout svg {
+            width: 15px;
+            height: 15px;
+            opacity: .85;
+        }
+
+        .nav-item.active {
+            color: #fff;
+        }
+
+        .nav-item:active {
+            transform: scale(.97);
+        }
+
+        .ribbon-spacer {
+            flex: 1;
+        }
+
+        .logout {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 9px;
+            color: #FF6961;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 140ms ease-out, transform 100ms ease-out;
+        }
+
+        .logout:hover {
+            background: rgba(255, 105, 97, .12);
+        }
+
+        .logout:active {
+            transform: scale(.97);
+        }
+
+        /* ── Main content ── */
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 34px 40px 60px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        #hello {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -.015em;
+            margin: 0 0 3px;
+        }
+
+        #today.sub {
+            margin: 0 0 26px;
+            text-align: left;
+            text-transform: none;
+            letter-spacing: normal;
+            font-size: 13px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+
+        .stat {
+            background: var(--glass);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: .5px solid rgba(255, 255, 255, .6);
+            border-radius: 16px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 2px rgba(20, 20, 40, .03), 0 12px 28px -16px rgba(20, 20, 40, .18);
+            animation: materialize 420ms cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        .stat:nth-child(2) {
+            animation-delay: 40ms;
+        }
+
+        .stat:nth-child(3) {
+            animation-delay: 80ms;
+        }
+
+        .stat .val {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -.02em;
+            line-height: 1;
+        }
+
+        .stat .val.accent-blue {
+            color: var(--blue);
+        }
+
+        .stat .val.accent-red {
+            color: var(--bad);
+        }
+
+        .stat .label {
+            font-size: 11.5px;
+            color: var(--ink-3);
+            font-weight: 500;
+            letter-spacing: .02em;
+            margin-top: 6px;
+        }
+
+        .stat .low-flag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--bad);
+            margin-top: 8px;
+            display: none;
+        }
+
+        .panel {
+            background: var(--glass);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: .5px solid rgba(255, 255, 255, .6);
+            border-radius: 20px;
+            padding: 26px 26px 20px;
+            box-shadow: 0 1px 2px rgba(20, 20, 40, .03), 0 16px 36px -18px rgba(20, 20, 40, .2);
+            animation: materialize 460ms cubic-bezier(.22, 1, .36, 1) 100ms both;
+        }
+
+        .mark-panel {
+            max-width: 460px;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2px;
+        }
+
+        thead th {
+            text-align: left;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--ink-3);
+            padding: 0 8px 12px;
+            border-bottom: .5px solid var(--hair);
+        }
+
+        tbody td {
+            padding: 13px 8px;
+            font-size: 13.5px;
+            border-bottom: .5px solid var(--hair);
+        }
+
+        tbody tr {
+            transition: background 120ms ease-out;
+        }
+
+        tbody tr:hover {
+            background: rgba(10, 108, 255, .04);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            background: rgba(10, 108, 255, .14);
+            color: var(--blue-press);
+        }
+
+        .badge.good {
+            background: rgba(48, 195, 107, .14);
+            color: #1E8E4E;
+        }
+
+        .badge.low {
+            background: rgba(229, 72, 77, .14);
+            color: var(--bad);
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 2px;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: var(--ink-3);
+            margin: 0 0 16px;
+        }
+
+        .hist-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, .5);
+            border: .5px solid rgba(255, 255, 255, .7);
+            border-radius: 14px;
+            margin-bottom: 8px;
+        }
+
+        .hist-row strong {
+            font-weight: 600;
+        }
+
+        .hist-row .muted {
+            color: var(--ink-3);
+            font-size: 12px;
+        }
+
+        .muted-note {
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--ink-3);
+        }
+
+        @media (prefers-contrast: more) {
+
+            .card,
+            .stat,
+            .panel,
+            .hist-row {
+                background: #fff;
+                backdrop-filter: none;
+                border: 1.5px solid var(--ink);
+            }
+
+            .group {
+                background: #fff;
+                border: 1px solid var(--ink);
+            }
+
+            .row {
+                border-bottom-color: #ccc;
+            }
+
+            .ribbon {
+                background: #000;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .ribbon {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 12px 16px;
+            }
+
+            .brand {
+                margin-right: 0;
+            }
+
+            main {
+                padding: 26px 18px 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="blob a"></div>
+    <div class="blob b"></div>
+    <div class="blob c"></div>
+
+    <div id="authWrap" class="center">
+        <div class="card">
+            <div id="regForm">
+                <div class="icon-badge">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12Zm0 2.5c-3.6 0-9 1.8-9 5.4v1.9h18v-1.9c0-3.6-5.4-5.4-9-5.4Z"
+                            fill="white" />
+                    </svg>
+                </div>
+                <h1>Student Register</h1>
+                <p class="sub">One-time profile setup</p>
+
+                <div class="group">
+                    <div class="row" id="nameRow">
+                        <label>Full name</label>
+                        <input id="name" autocomplete="off">
+                        <svg class="status-icon ok" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#30C36B" />
+                            <path d="M8 12.5l2.5 2.5L16 9" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        <svg class="status-icon err" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#FF3B30" />
+                            <path d="M12 7v6M12 16.5v.01" stroke="white" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <div class="row" id="enrollmentRow">
+                        <label>Enrolment ID</label>
+                        <input id="enrollment" autocomplete="off" placeholder="e.g. ADTU/1/2023-26/BCAO/012">
+                        <svg class="status-icon ok" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#30C36B" />
+                            <path d="M8 12.5l2.5 2.5L16 9" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        <svg class="status-icon err" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#FF3B30" />
+                            <path d="M12 7v6M12 16.5v.01" stroke="white" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <div class="row" id="sectionRow">
+                        <label>Section</label>
+                        <input id="section" autocomplete="off" placeholder="e.g. A">
+                        <svg class="status-icon ok" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#30C36B" />
+                            <path d="M8 12.5l2.5 2.5L16 9" stroke="white" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        <svg class="status-icon err" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#FF3B30" />
+                            <path d="M12 7v6M12 16.5v.01" stroke="white" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="field-error" id="nameErr"></p>
+                <p class="field-error" id="enrollmentErr"></p>
+                <p class="field-error" id="sectionErr"></p>
+
+                <button id="registerBtn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dash" style="display:none">
+        <div class="ribbon">
+            <div class="brand">
+                <div class="mark">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="2" />
+                        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="2" />
+                        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="2" />
+                        <path d="M14 14h3v3M20 17v4M17 20h4" stroke="white" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                Attendance
+            </div>
+            <div class="tabs" id="tabs">
+                <div class="tab-pill" id="tabPill"></div>
+                <div class="nav-item active" id="tabMark" data-tab="mark" onclick="showTab('mark')">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                        <path d="M8 12.5l2.5 2.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Mark Attendance
+                </div>
+                <div class="nav-item" id="tabAttendance" data-tab="attendance" onclick="showTab('attendance')">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 8h18M3 12h18M3 16h12" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" />
+                    </svg>
+                    My Attendance
+                </div>
+            </div>
+            <div class="ribbon-spacer"></div>
+            <div class="logout" onclick="switchProfile()">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Switch Profile
+            </div>
+        </div>
+
+        <main>
+            <h1 id="hello"></h1>
+            <p class="sub" id="today"></p>
+
+            <div id="markTab">
+                <div class="stats">
+                    <div class="stat">
+                        <div class="val accent-blue" id="overallVal">–</div>
+                        <div class="label">Overall Attendance</div>
+                        <div class="low-flag" id="overallLowFlag">⚠ Below required 75%</div>
+                    </div>
+                    <div class="stat">
+                        <div class="val" id="presentVal">0</div>
+                        <div class="label">Classes Present</div>
+                    </div>
+                    <div class="stat">
+                        <div class="val" id="lowVal">0</div>
+                        <div class="label">Subjects Below 75%</div>
+                    </div>
+                </div>
+
+                <div class="panel mark-panel">
+                    <div class="scan-status"><span id="scanStatus">Scan the QR code shown by your teacher.</span>
+                    </div>
+                    <button class="scan-btn" id="scanToggleBtn">Open Camera to Scan</button>
+                    <div id="qrReader"></div>
+                    <div id="camError"></div>
+                    <div id="msg"></div>
+                </div>
+            </div>
+
+            <div id="attendanceTab" style="display:none">
+                <div class="panel">
+                    <p class="panel-title">Attendance by Subject</p>
+                    <p class="panel-subtitle" id="subjectSubtitle">Loading…</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Teacher</th>
+                                <th>Present</th>
+                                <th>Total</th>
+                                <th>%</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subjectRows"></tbody>
+                    </table>
+                </div>
+
+                <div class="panel" style="margin-top:16px">
+                    <p class="panel-title">Recent Activity</p>
+                    <p class="panel-subtitle">Your most recent attendance marks</p>
+                    <div id="recentList"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let token = new URLSearchParams(location.search).get('token');
+        let profile = JSON.parse(localStorage.getItem('profile') || 'null');
+        let html5QrCode = null;
+        let scanning = false;
+        let attendanceData = null;
+        if (profile) enterDash(); else showRegister();
+
+        // ── Validation helpers ──────────────────────────────────────────────
+        const NAME_REGEX = /^[A-Za-z]+(?:\s+[A-Za-z]+)*$/;
+        const ENROLLMENT_REGEX = /^ADTU\/\d+\/\d{4}-\d{2,4}\/[A-Z0-9]+\/\d+$/;
+        const SECTION_REGEX = /^[A-Z]$/;
+
+        const ROW_BY_ERR = { nameErr: 'nameRow', enrollmentErr: 'enrollmentRow', sectionErr: 'sectionRow' };
+
+        function showFieldError(id, msg) {
+            const el = document.getElementById(id);
+            const row = document.getElementById(ROW_BY_ERR[id]);
+            el.textContent = msg;
+            el.classList.toggle('show', !!msg);
+            if (msg) {
+                row.classList.remove('valid');
+                row.classList.add('invalid');
+                row.classList.remove('shake');
+                void row.offsetWidth;
+                row.classList.add('shake');
+            } else {
+                row.classList.remove('invalid');
+            }
+        }
+        function clearErrors() {
+            ['nameErr', 'enrollmentErr', 'sectionErr'].forEach(id => showFieldError(id, ''));
+        }
+
+        // Live focus/blur feedback on the grouped rows (visual only, doesn't change validation logic)
+        Object.entries(ROW_BY_ERR).forEach(([, rowId]) => {
+            const row = document.getElementById(rowId);
+            const input = row.querySelector('input');
+            input.addEventListener('focus', () => row.classList.add('focused'));
+            input.addEventListener('blur', () => row.classList.remove('focused'));
+            input.addEventListener('input', () => row.classList.remove('invalid', 'valid'));
+        });
+
+        // Press feedback on buttons (respond on pointerdown, not release)
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('pointerdown', () => btn.classList.add('pressed'));
+            ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev =>
+                btn.addEventListener(ev, () => btn.classList.remove('pressed')));
+        });
+
+        document.getElementById('registerBtn').addEventListener('click', register);
+        document.getElementById('scanToggleBtn').addEventListener('click', toggleScan);
+
+        function showRegister() {
+            document.getElementById('dash').style.display = 'none';
+            document.getElementById('authWrap').style.display = 'flex';
+        }
+
+        async function register() {
+            clearErrors();
+
+            // Normalize
+            const name = document.getElementById('name').value.trim();
+            const enrollmentRaw = document.getElementById('enrollment').value.trim();
+            const enrollment = enrollmentRaw.toUpperCase();
+            const sectionRaw = document.getElementById('section').value.trim();
+            const section = sectionRaw.toUpperCase();
+
+            // Per-field validation
+            let hasError = false;
+
+            if (!name) {
+                showFieldError('nameErr', 'Full name is required.');
+                hasError = true;
+            } else if (name.length > 100) {
+                showFieldError('nameErr', 'Name must not exceed 100 characters.');
+                hasError = true;
+            } else if (!NAME_REGEX.test(name)) {
+                showFieldError('nameErr', 'Name must contain letters and spaces only.');
+                hasError = true;
+            } else {
+                document.getElementById('nameRow').classList.add('valid');
+            }
+
+            if (!enrollment) {
+                showFieldError('enrollmentErr', 'Enrollment ID is required.');
+                hasError = true;
+            } else if (!ENROLLMENT_REGEX.test(enrollment)) {
+                showFieldError('enrollmentErr', 'Enter a valid enrollment ID, e.g. ADTU/1/2023-26/BCAO/012.');
+                hasError = true;
+            } else {
+                document.getElementById('enrollmentRow').classList.add('valid');
+            }
+
+            if (!section) {
+                showFieldError('sectionErr', 'Section is required.');
+                hasError = true;
+            } else if (!SECTION_REGEX.test(section)) {
+                showFieldError('sectionErr', 'Section must be a single letter such as A, B, C, or D.');
+                hasError = true;
+            } else {
+                document.getElementById('sectionRow').classList.add('valid');
+            }
+
+            if (hasError) return;
+
+            // Submit to backend
+            const r = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, enrollment, section })
+            });
+            const data = await r.json();
+
+            const newProfile = { name, enrollment, section };
+
+            if (!r.ok) {
+                // Already registered (409) just means this student has a profile already —
+                // that's not a real error from the student's point of view, so continue
+                // straight to the dashboard instead of blocking them.
+                if (r.status === 409) {
+                    localStorage.setItem('profile', JSON.stringify(newProfile));
+                    profile = newProfile;
+                    enterDash();
+                    return;
+                }
+
+                // Map other backend error messages back to the correct field
+                const msg = data.error || 'Registration failed.';
+                if (msg.toLowerCase().includes('name'))
+                    showFieldError('nameErr', msg);
+                else if (msg.toLowerCase().includes('enrollment'))
+                    showFieldError('enrollmentErr', msg);
+                else if (msg.toLowerCase().includes('section'))
+                    showFieldError('sectionErr', msg);
+                else
+                    showFieldError('nameErr', msg); // fallback: show at top
+                return;
+            }
+
+            localStorage.setItem('profile', JSON.stringify(newProfile));
+            profile = newProfile;
+            enterDash();
+        }
+
+        function enterDash() {
+            document.getElementById('authWrap').style.display = 'none';
+            document.getElementById('dash').style.display = 'block';
+            document.getElementById('hello').textContent = `Hi, ${profile.name.split(' ')[0]}`;
+            document.getElementById('today').textContent = `${profile.enrollment} · Section ${profile.section}`;
+            showTab('mark');
+            loadAttendance();
+
+            if (token) {
+                document.getElementById('scanStatus').textContent = 'QR code detected — marking attendance…';
+                markAttendance();
+            } else {
+                document.getElementById('scanStatus').textContent = 'Scan the QR code shown by your teacher.';
+            }
+        }
+
+        const TAB_ORDER = ['mark', 'attendance'];
+        function showTab(tab) {
+            document.getElementById('markTab').style.display = tab === 'mark' ? 'block' : 'none';
+            document.getElementById('attendanceTab').style.display = tab === 'attendance' ? 'block' : 'none';
+            document.getElementById('tabMark').classList.toggle('active', tab === 'mark');
+            document.getElementById('tabAttendance').classList.toggle('active', tab === 'attendance');
+            const pill = document.getElementById('tabPill');
+            pill.style.transform = 'translateX(' + (TAB_ORDER.indexOf(tab) * 152) + 'px)';
+            if (tab === 'attendance') renderAttendanceTab();
+        }
+
+        async function markAttendance(overrideToken) {
+            const useToken = overrideToken || token;
+            if (!useToken) return;
+            const r = await fetch('/api/mark', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enrollment: profile.enrollment, token: useToken }) });
+            const data = await r.json();
+            const msg = document.getElementById('msg');
+            if (r.ok) {
+                document.querySelector('.scan-status').style.display = 'none';
+                document.getElementById('scanToggleBtn').style.display = 'none';
+                const cls = data.already ? 'already' : 'present';
+                const label = data.already ? 'Already Marked' : 'Present';
+                msg.innerHTML = `<div class="result-badge">
+                    <div class="result-icon ${cls}">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M6 12.5l4 4L18 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="result-label">${label}</div>
+                </div>`;
+                if (!data.already) loadAttendance();
+            } else {
+                msg.innerHTML = `<p style="color:var(--red);font-size:13px;margin:6px 0 0">${data.error}</p>`;
+                document.getElementById('scanStatus').textContent = 'Ask your teacher to show a fresh QR code, then scan again.';
+            }
+        }
+
+        function switchProfile() {
+            localStorage.removeItem('profile');
+            location.reload();
+        }
+
+        function extractToken(decodedText) {
+            // Accept either a raw token or a full URL like https://host/student.html?token=XYZ
+            try {
+                const url = new URL(decodedText);
+                const t = url.searchParams.get('token');
+                if (t) return t;
+            } catch (e) {
+                // not a URL, fall through and treat decodedText as the raw token
+            }
+            return decodedText;
+        }
+
+        async function toggleScan() {
+            if (scanning) {
+                await stopScan();
+                return;
+            }
+            const camError = document.getElementById('camError');
+            camError.style.display = 'none';
+            camError.textContent = '';
+
+            if (!window.isSecureContext) {
+                camError.textContent = 'Camera access needs HTTPS (or localhost). Ask your admin to serve this page over https.';
+                camError.style.display = 'block';
+                return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                camError.textContent = 'Camera scanning is not supported in this browser.';
+                camError.style.display = 'block';
+                return;
+            }
+            if (typeof Html5Qrcode === 'undefined') {
+                camError.textContent = 'The QR scanner library failed to load. Check your internet connection and reload the page, or scan with your phone\'s built-in camera app instead.';
+                camError.style.display = 'block';
+                return;
+            }
+
+            const readerEl = document.getElementById('qrReader');
+            readerEl.style.display = 'block';
+            const scanBtn = document.getElementById('scanToggleBtn');
+            scanBtn.textContent = 'Stop Camera';
+            scanBtn.classList.add('stopping');
+            document.getElementById('scanStatus').textContent = 'Point your camera at the QR code…';
+
+            try {
+                html5QrCode = new Html5Qrcode('qrReader');
+                await html5QrCode.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 240, height: 240 } },
+                    async (decodedText) => {
+                        const scannedToken = extractToken(decodedText);
+                        token = scannedToken;
+                        await stopScan();
+                        document.getElementById('scanStatus').textContent = 'QR code detected — marking attendance…';
+                        markAttendance(scannedToken);
+                    },
+                    () => { /* per-frame decode failures are normal, ignore */ }
+                );
+                scanning = true;
+            } catch (err) {
+                console.error('QR scanner failed to start:', err);
+                readerEl.style.display = 'none';
+                scanBtn.textContent = 'Open Camera to Scan';
+                scanBtn.classList.remove('stopping');
+                if (err && err.name === 'NotAllowedError') {
+                    camError.textContent = 'Camera permission denied. Enable it in your browser/site settings and try again.';
+                } else if (err && err.name === 'NotFoundError') {
+                    camError.textContent = 'No camera found on this device.';
+                } else if (err && err.name === 'NotReadableError') {
+                    camError.textContent = 'Camera is already in use by another app. Close it and try again.';
+                } else {
+                    const detail = err && err.message ? ` (${err.message})` : '';
+                    camError.textContent = `Could not start the camera${detail}. Try again or scan with your phone's built-in camera app instead.`;
+                }
+                camError.style.display = 'block';
+            }
+        }
+
+        async function stopScan() {
+            if (html5QrCode && scanning) {
+                try {
+                    await html5QrCode.stop();
+                    html5QrCode.clear();
+                } catch (e) { /* already stopped */ }
+            }
+            scanning = false;
+            document.getElementById('qrReader').style.display = 'none';
+            const scanBtn = document.getElementById('scanToggleBtn');
+            scanBtn.textContent = 'Open Camera to Scan';
+            scanBtn.classList.remove('stopping');
+        }
+
+        // ── Attendance dashboard (subject breakdown, overall %, low-attendance signal) ──
+        const LOW_THRESHOLD = 75;
+
+        async function loadAttendance() {
+            try {
+                const r = await fetch(`/api/my-attendance?enrollment=${encodeURIComponent(profile.enrollment)}`);
+                const data = await r.json();
+                if (!r.ok) {
+                    attendanceData = { error: data.error || 'Could not load attendance.' };
+                } else {
+                    attendanceData = summarize(data);
+                }
+            } catch (e) {
+                attendanceData = { error: 'Could not load attendance. Check your connection.' };
+            }
+            renderStats();
+            if (document.getElementById('attendanceTab').style.display !== 'none') renderAttendanceTab();
+        }
+
+        function summarize(data) {
+            const bySubject = (data.bySubject || []).map(s => {
+                const pct = s.totalSessions ? (s.presentSessions / s.totalSessions) * 100 : 0;
+                return { ...s, pct };
+            });
+            const sumPresent = bySubject.reduce((a, s) => a + s.presentSessions, 0);
+            const sumTotal = bySubject.reduce((a, s) => a + s.totalSessions, 0);
+            const overallPct = sumTotal ? (sumPresent / sumTotal) * 100 : null;
+            const lowCount = bySubject.filter(s => s.pct < LOW_THRESHOLD).length;
+            return { bySubject, sumPresent, sumTotal, overallPct, lowCount, recent: data.recent || [] };
+        }
+
+        function renderStats() {
+            const overallVal = document.getElementById('overallVal');
+            const overallFlag = document.getElementById('overallLowFlag');
+            const presentVal = document.getElementById('presentVal');
+            const lowVal = document.getElementById('lowVal');
+
+            if (!attendanceData || attendanceData.error || attendanceData.overallPct === null) {
+                overallVal.textContent = '–';
+                overallVal.classList.remove('accent-red');
+                overallVal.classList.add('accent-blue');
+                overallFlag.style.display = 'none';
+                presentVal.textContent = attendanceData && !attendanceData.error ? attendanceData.sumPresent : '0';
+                lowVal.textContent = attendanceData && !attendanceData.error ? attendanceData.lowCount : '0';
+                return;
+            }
+
+            const isLow = attendanceData.overallPct < LOW_THRESHOLD;
+            overallVal.textContent = Math.round(attendanceData.overallPct) + '%';
+            overallVal.classList.toggle('accent-red', isLow);
+            overallVal.classList.toggle('accent-blue', !isLow);
+            overallFlag.style.display = isLow ? 'block' : 'none';
+            presentVal.textContent = attendanceData.sumPresent;
+            lowVal.textContent = attendanceData.lowCount;
+        }
+
+        function renderAttendanceTab() {
+            const subtitle = document.getElementById('subjectSubtitle');
+            const tbody = document.getElementById('subjectRows');
+            const recentList = document.getElementById('recentList');
+
+            if (!attendanceData) {
+                subtitle.textContent = 'Loading…';
+                tbody.innerHTML = '';
+                recentList.innerHTML = '';
+                return;
+            }
+            if (attendanceData.error) {
+                subtitle.textContent = attendanceData.error;
+                tbody.innerHTML = '';
+                recentList.innerHTML = '';
+                return;
+            }
+
+            const pct = attendanceData.overallPct;
+            if (pct === null) {
+                subtitle.textContent = 'No attendance recorded yet.';
+            } else {
+                const isLow = pct < LOW_THRESHOLD;
+                subtitle.innerHTML = `Overall: <strong class="${isLow ? '' : ''}" style="color:${isLow ? 'var(--bad)' : 'var(--ink)'}">${Math.round(pct)}%</strong> · ${attendanceData.sumPresent} of ${attendanceData.sumTotal} classes attended${isLow ? ' <span class="badge low" style="margin-left:6px">Below 75%</span>' : ''}`;
+            }
+
+            if (attendanceData.bySubject.length) {
+                tbody.innerHTML = attendanceData.bySubject.map(s => {
+                    const pctR = Math.round(s.pct);
+                    const low = s.pct < LOW_THRESHOLD;
+                    return `<tr>
+                        <td>${esc(s.subject)}</td>
+                        <td>${esc(s.teacherName)}</td>
+                        <td>${s.presentSessions}</td>
+                        <td>${s.totalSessions}</td>
+                        <td>${pctR}%</td>
+                        <td><span class="badge ${low ? 'low' : 'good'}">${low ? 'Low' : 'Good'}</span></td>
+                    </tr>`;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="muted-note" style="padding:20px 8px">No subjects recorded yet — mark attendance in a session to see it here.</td></tr>';
+            }
+
+            if (attendanceData.recent.length) {
+                recentList.innerHTML = attendanceData.recent.map(s => `
+                    <div class="hist-row">
+                        <div><strong>${esc(s.subject || 'No subject')}</strong><br><span class="muted">${esc(s.teacherName)}</span></div>
+                        <span class="muted">${new Date(s.time).toLocaleString()}</span>
+                    </div>`).join('');
+            } else {
+                recentList.innerHTML = '<p class="muted-note">No attendance marked yet.</p>';
+            }
+        }
+
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str == null ? '' : str;
+            return d.innerHTML;
+        }
+    </script>
+</body>
+
+</html>
